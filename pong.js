@@ -26,25 +26,44 @@ var player = function(rgb)
 	this.draw = draw;
 }
 
+var ball = function(rgb)
+{
+	this.w = 8;
+	this.h = 8;
+	this.color = rgb;
+	this.draw = draw;
+}
+
+function refresh(p1, p2, palet, ctx)
+{
+	p1.draw(ctx);
+	p2.draw(ctx);
+	palet.draw(ctx);
+}
 
 function pong() {
 	var fgColor = "#0eff00";
 	var bgColor = "#000000";
-	var gamestatus = 0;
+	var gameStatus = 0;
 	var arcade = document.getElementById('canvas');
+
 	var p1 = new player(fgColor);
 	p1.x = arcade.width / 16;
 	p1.y = arcade.height / 2 - p1.h / 2;
 	var p2 = new player(fgColor);
 	p2.x = 15 * (arcade.width / 16) - p2.w;
 	p2.y = arcade.height / 2 - p2.h / 2;
+	var palet = new ball(fgColor);
+	palet.x = arcade.width / 2 - palet.w / 2;
+	palet.y = arcade.height / 2 - palet.h / 2;
 
 	if (arcade.getContext) {
 		var ctx = arcade.getContext('2d');
+		ctx.fillStyle = bgColor;
 		ctx.fillRect(0,0,arcade.width,arcade.height);
 	}
-	p1.draw(ctx);
-	p2.draw(ctx);
+	gameStatus = 1;
+	refresh(p1, p2, palet, ctx);
 }
 
 pong();
