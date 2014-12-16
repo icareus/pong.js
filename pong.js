@@ -41,11 +41,20 @@ function refresh(p1, p2, palet, ctx)
 	palet.draw(ctx);
 }
 
+function gameObject ()
+{
+	var fps;
+	var score = 0;
+	// if (game == 'new')
+	log(this);
+	log(score ++);
+}
+
 function pong() {
 	var fgColor = "#0eff00";
 	var bgColor = "#000000";
-	var gameStatus = 0;
 	var arcade = document.getElementById('canvas');
+	var intervalId;
 
 	var p1 = new player(fgColor);
 	p1.x = arcade.width / 16;
@@ -62,7 +71,7 @@ function pong() {
 		ctx.fillStyle = bgColor;
 		ctx.fillRect(0,0,arcade.width,arcade.height);
 	}
-	gameStatus = 1;
+	gameObject.intervalId = setInterval(gameObject, 20);
 	refresh(p1, p2, palet, ctx);
 }
 
