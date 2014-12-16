@@ -10,28 +10,32 @@
 //                                                                            //
 // ************************************************************************** //
 
-var player = function()
+function log(object) {console.log(object);}
+
+function draw(ctx)
 {
-	var w = 8;
-	var h = 32;
-	var x;
-	var y;
+	ctx.fillStyle = this.color;
+	ctx.fillRect(this.x, this.y, this.w, this.h);
 }
 
-player.prototype.draw = function(ctx){
-		ctx.fillStyle = this.color;
-		ctx.fillRect(this.x, this.y, this.w, this.h);
+var player = function(rgb)
+{
+	this.w = 8;
+	this.h = 32;
+	this.color = rgb;
+	this.draw = draw;
 }
+
 
 function pong() {
-	var fgColor = 0x0eff00;
-	var bgColor = 0x000000;
+	var fgColor = "#0eff00";
+	var bgColor = "#000000";
 	var gamestatus = 0;
 	var arcade = document.getElementById('canvas');
-	var p1 = new player;
+	var p1 = new player(fgColor);
 	p1.x = arcade.width / 16;
 	p1.y = arcade.height / 2 - p1.h / 2;
-	var p2 = new player;
+	var p2 = new player(fgColor);
 	p2.x = 15 * (arcade.width / 16) - p2.w;
 	p2.y = arcade.height / 2 - p2.h / 2;
 
