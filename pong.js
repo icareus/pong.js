@@ -12,18 +12,11 @@
 
 function log(object) {console.log(object);}
 
-function draw(ctx)
-{
-	ctx.fillStyle = this.color;
-	ctx.fillRect(this.x, this.y, this.w, this.h);
-}
-
 var player = function(rgb)
 {
 	this.w = 8;
 	this.h = 32;
 	this.color = rgb;
-	this.draw = draw;
 }
 
 var ball = function(rgb)
@@ -31,48 +24,62 @@ var ball = function(rgb)
 	this.w = 8;
 	this.h = 8;
 	this.color = rgb;
-	this.draw = draw;
 }
 
-function refresh(p1, p2, palet, ctx)
+var pong = {};
+
+pong.fgColor = "#0eff00";
+pong.bgColor = "#000000";
+pong.framerate = 60;
+pong.arcade = document.getElementById('canvas');
+
+pong.init = function()
 {
-	p1.draw(ctx);
-	p2.draw(ctx);
-	palet.draw(ctx);
+	this.p1 = new player(this.fgColor);
+	this.p1.x = this.arcade.width / 16;
+	this.p1.y = this.arcade.height / 2 - this.p1.h / 2;
+	this.p2 = new player(this.fgColor);
+	this.p2.x = 15 * (this.arcade.width / 16) - this.p2.w;
+	this.p2.y = this.arcade.height / 2 - this.p2.h / 2;
+	this.palet = new ball(this.fgColor);
+	this.palet.x = this.arcade.width / 2 - this.palet.w / 2;
+	this.palet.y = this.arcade.height / 2 - this.palet.h / 2;
+	this.palet.velocity = {};
+	this.palet.velocity.x = (Math.random() < 0,5 ? -1 : 1);
+
+	this.ctx = this.arcade.getContext('2d');
 }
 
-function gameObject ()
+pong.draw = function()
 {
-	var fps;
-	var score = 0;
-	// if (game == 'new')
-	log(this);
-	log(score ++);
+	this.ctx.fillStyle = this.bgColor;
+	this.ctx.fillRect(0,0,this.arcade.width,this.arcade.height);
+	this.ctx.fillStyle = this.fgColor;
+	this.ctx.fillRect(this.p1.x, this.p1.y, this.p1.w, this.p1.h);
+	this.ctx.fillRect(this.p2.x, this.p2.y, this.p2.w, this.p2.h);
+	this.ctx.fillRect(this.palet.x, this.palet.y, this.palet.w, this.palet.h);
 }
 
-function pong() {
-	var fgColor = "#0eff00";
-	var bgColor = "#000000";
-	var arcade = document.getElementById('canvas');
-	var intervalId;
-
-	var p1 = new player(fgColor);
-	p1.x = arcade.width / 16;
-	p1.y = arcade.height / 2 - p1.h / 2;
-	var p2 = new player(fgColor);
-	p2.x = 15 * (arcade.width / 16) - p2.w;
-	p2.y = arcade.height / 2 - p2.h / 2;
-	var palet = new ball(fgColor);
-	palet.x = arcade.width / 2 - palet.w / 2;
-	palet.y = arcade.height / 2 - palet.h / 2;
-
-	if (arcade.getContext) {
-		var ctx = arcade.getContext('2d');
-		ctx.fillStyle = bgColor;
-		ctx.fillRect(0,0,arcade.width,arcade.height);
+pong.update = function()
+{
+	if (this.palet.x < this.p1.x + this.p1.w) {
+		this.palet.velocity.x = 1;}
+	else if (this.palet.x > this.p2.x - this.palet.w) {
+		this.palet.velocity.x = -1;
 	}
-	gameObject.intervalId = setInterval(gameObject, 20);
-	refresh(p1, p2, palet, ctx);
+	this.palet.x += this.palet.velocity.x;
+	log(this.palet.velocity);
 }
 
-pong();
+pong.run = function()
+{
+	pong.update.iter = 0;
+	pong.intervalId = setInterval(function()
+		{
+			pong.draw(pong.ctx);
+			pong.update();
+		}, 1000 / pong.framerate);
+}
+
+pong.init();
+pong.run();
