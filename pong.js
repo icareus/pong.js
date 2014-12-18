@@ -62,6 +62,7 @@ pong.draw = function()
 
 pong.update = function()
 {
+	log(KeyboardEvent.KEYDOWN);
 	if (this.palet.x < this.p1.x + this.p1.w) {
 		this.palet.velocity.x = 1;}
 	else if (this.palet.x > this.p2.x - this.palet.w) {
