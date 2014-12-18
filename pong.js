@@ -1,85 +1,189 @@
-// ************************************************************************** //
-//                                                                            //
-//                                                        :::      ::::::::   //
-//   pong.js                                            :+:      :+:    :+:   //
-//                                                    +:+ +:+         +:+     //
-//   By: abarbaro <marvin@42.fr>                    +#+  +:+       +#+        //
-//                                                +#+#+#+#+#+   +#+           //
-//   Created: 2014/12/15 17:27:22 by abarbaro          #+#    #+#             //
-//   Updated: 2014/12/15 17:27:25 by abarbaro         ###   ########.fr       //
-//                                                                            //
-// ************************************************************************** //
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   adebray.pong.js                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abarbaro <abarbaro@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2014/12/18 00:23:34 by abarbaro          #+#    #+#             */
+/*   Updated: 2014/12/18 07:20:41 by abarbaro         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 function log(object) {console.log(object);}
 
-var player = function(rgb)
-{
-	this.w = 8;
-	this.h = 32;
-	this.color = rgb;
+function to_unit(x) {
+    return (x / (x < 0 ? -x : x));
 }
 
-var ball = function(rgb)
+function vec2(x, y) {
+    this.x = x;
+    this.y = y;
+}
+
+function rSign() {
+    return (Math.random() < 1/2 ? -1 : 1);
+}
+
+function player(number, drawColor, gameBoard)
 {
-	this.w = 8;
-	this.h = 8;
-	this.color = rgb;
+    this.lives = 3;
+    this.number = number;
+    this.color = drawColor;
+    this.w = 8;
+    this.h = 32;
+    this.x = number % 2 ? gameBoard.width / 16
+                        : 15 * (gameBoard.width / 16) - this.w;
+    this.y = gameBoard.height / 2 - this.h / 2;
+    this.draw = function(ctx)
+    {
+        var fillStyleOld = ctx.fillStyle;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.fillStyle = fillStyleOld;
+    }
+}
+
+function ball(drawColor, gameBoard)
+{
+    this.color = drawColor;
+    this.set = function() {
+        this.w = 8;
+        this.h = 8;
+        this.x = gameBoard.width / 2 - this.w / 2;
+        this.y = gameBoard.height / 2 - this.h / 2;
+        this.velocity = new vec2(/*Math.floor(Math.random() * 3) * rSign()
+                                ,Math.floor(Math.random() * 4 + 1 * rSign())*/13, 0);
+        // if (this.velocity.x == 0) {
+        //     this.velocity.x = 16;
+        // }
+        // if (this.velocity.y == 0) {
+        //     this.velocity.y = 16;
+        // }
+    }
+    this.collide = function(rect)
+    {
+        // Ball isn't strictly "over" nor "under" rectangle
+        // => may hit on the sides
+        if (this.y + this.h > rect.y && this.y < rect.y + rect.h)
+        {
+            // log("Player on my side");
+            // Collide left side with right side or opp -> bounce x axis
+            // left
+            if (this.x < rect.x + rect.w && this.x + this.velocity.x > rect.x
+                /* right */
+                || this.x + this.w > rect.x && this.x + this.velocity.x < rect.x)
+            {
+                this.velocity.x *= -1;
+                // log("Side collision");
+            }
+        }
+        // Ball is strictly "over" or "under" rectangle
+        // => may hit on top / bottom
+        if (this.x + this.w > rect.x && this.x < rect.x + rect.w)
+        {
+            // log("Player on my top/bottom");
+            // Collide top side with bottom, or opp -> bounce y axis
+            if (this.y < rect.y + rect.h && this.y > rect.y
+                || this.y + this.h > rect.y && this.y < rect.y)
+            {
+                this.velocity.y *= -1;
+                // log("Top/bottom collision");
+            }
+        }
+    }
+    this.draw = function(ctx)
+    {
+        var fillStyleOld = ctx.fillStyle;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.fillStyle = fillStyleOld;
+    }
+    this.update = function(playersArray, gameBoard)
+    {
+        for (var i = 0; i < playersArray.length; i++) {
+            // if (playersArray[i].die(this))
+            // {
+            //     player.lives --;
+            //     this.set();
+            // }
+        }
+        if (this.x < 0 || this.x + this.w > gameBoard.width) {
+            this.set();
+        }
+        else if (this.y < 0 || this.y + this.h > gameBoard.height) {
+            this.velocity.y *= -1;
+        }
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        for (var i = 0; i < playersArray.length; i++) {
+            this.collide(playersArray[i]);
+        }
+    }
+
+    this.set();
 }
 
 var pong = {};
 
-pong.fgColor = "#0eff00";
-pong.bgColor = "#000000";
-pong.framerate = 60;
-pong.arcade = document.getElementById('canvas');
-
 pong.init = function()
 {
-	this.p1 = new player(this.fgColor);
-	this.p1.x = this.arcade.width / 16;
-	this.p1.y = this.arcade.height / 2 - this.p1.h / 2;
-	this.p2 = new player(this.fgColor);
-	this.p2.x = 15 * (this.arcade.width / 16) - this.p2.w;
-	this.p2.y = this.arcade.height / 2 - this.p2.h / 2;
-	this.palet = new ball(this.fgColor);
-	this.palet.x = this.arcade.width / 2 - this.palet.w / 2;
-	this.palet.y = this.arcade.height / 2 - this.palet.h / 2;
-	this.palet.velocity = {};
-	this.palet.velocity.x = (Math.random() < 0,5 ? -1 : 1);
+    this.fgColor = "#00ff00";
+    this.bgColor = "#000000";
+    this.framerate = 50;
+    this.gameBoard = document.getElementById('canvas');
+    this.ctx = this.gameBoard.getContext('2d');
+    this.players = 2;
+    this.playersArray = [];
+    // event
+    this.keyHandler = function(e) {
+        e = e || window.event;
+        log(e.type);
+    }
+    window.addEventListener("keydown", this.keyHandler, false);
+    window.addEventListener("keyup", this.keyHandler, false);
 
-	this.ctx = this.arcade.getContext('2d');
+    for (var i = 1; i <= this.players; i++) {
+        this.playersArray.push (new player(i, this.fgColor, this.gameBoard));
+    }
+
+    this.palet = new ball(this.fgColor, this.gameBoard);
 }
 
 pong.draw = function()
 {
-	this.ctx.fillStyle = this.bgColor;
-	this.ctx.fillRect(0,0,this.arcade.width,this.arcade.height);
-	this.ctx.fillStyle = this.fgColor;
-	this.ctx.fillRect(this.p1.x, this.p1.y, this.p1.w, this.p1.h);
-	this.ctx.fillRect(this.p2.x, this.p2.y, this.p2.w, this.p2.h);
-	this.ctx.fillRect(this.palet.x, this.palet.y, this.palet.w, this.palet.h);
+    this.ctx.fillStyle = this.bgColor;
+    this.ctx.fillRect(0,0,this.gameBoard.width,this.gameBoard.height);
+    this.ctx.fillStyle = this.fgColor;
+
+    // this.p1.draw(this.ctx);
+    // this.p2.draw(this.ctx);
+    for (var i = 0; i < this.players; i++) {
+        this.playersArray[i].draw(this.ctx);
+    }
+    this.palet.draw(this.ctx);
 }
 
 pong.update = function()
 {
-	log(KeyboardEvent.KEYDOWN);
-	if (this.palet.x < this.p1.x + this.p1.w) {
-		this.palet.velocity.x = 1;}
-	else if (this.palet.x > this.p2.x - this.palet.w) {
-		this.palet.velocity.x = -1;
-	}
-	this.palet.x += this.palet.velocity.x;
-	log(this.palet.velocity);
+    // this.p1.update();
+    // this.p2.update();
+    for (var i = 0; i < this.players; i++) {
+        // this.playersArray[i].update();
+    }
+    // log(this.palet);
+    this.palet.update(this.playersArray, this.gameBoard);
 }
 
 pong.run = function()
 {
-	pong.update.iter = 0;
-	pong.intervalId = setInterval(function()
-		{
-			pong.draw(pong.ctx);
-			pong.update();
-		}, 1000 / pong.framerate);
+    this.update.iter = 0;
+    this.intervalId = setInterval(
+        function() {
+            pong.draw();
+            pong.update();
+        }
+        , 1000 / this.framerate);
 }
 
 pong.init();
