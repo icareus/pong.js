@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   adebray.pong.js                                    :+:      :+:    :+:   */
+/*   pong.js                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: abarbaro <abarbaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2014/12/18 00:23:34 by abarbaro          #+#    #+#             */
-/*   Updated: 2014/12/18 07:20:41 by abarbaro         ###   ########.fr       */
+/*   Updated: 2014/12/18 08:31:57 by abarbaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,18 @@ function rSign() {
     return (Math.random() < 1/2 ? -1 : 1);
 }
 
+function keySet(playerNumber) {
+    if (playerNumber == 1)
+    {
+        this.up = "Up";
+        this.down = "Down";
+    }
+    else if (playerNumber == 2) {
+        this.up = "U+0057";
+        this.down = "U+0053";
+    }
+}
+
 function player(number, drawColor, gameBoard)
 {
     this.lives = 3;
@@ -35,12 +47,22 @@ function player(number, drawColor, gameBoard)
     this.x = number % 2 ? gameBoard.width / 16
                         : 15 * (gameBoard.width / 16) - this.w;
     this.y = gameBoard.height / 2 - this.h / 2;
+    this.controls = new keySet(this.number);
+    this.velocity = new vec2(0, 0);
     this.draw = function(ctx)
     {
         var fillStyleOld = ctx.fillStyle;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.w, this.h);
         ctx.fillStyle = fillStyleOld;
+    }
+    this.update = function(keyHandler) {
+        // tidy this so up + down = 0
+        this.velocity.y = keyHandler.up1 ? 4 : 0;
+        this.velocity.y = keyHandler.down1 ? -4 : 0;
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        log(keyHandler.up1);
     }
 }
 
@@ -67,28 +89,21 @@ function ball(drawColor, gameBoard)
         // => may hit on the sides
         if (this.y + this.h > rect.y && this.y < rect.y + rect.h)
         {
-            // log("Player on my side");
-            // Collide left side with right side or opp -> bounce x axis
-            // left
             if (this.x < rect.x + rect.w && this.x + this.velocity.x > rect.x
                 /* right */
                 || this.x + this.w > rect.x && this.x + this.velocity.x < rect.x)
             {
                 this.velocity.x *= -1;
-                // log("Side collision");
             }
         }
         // Ball is strictly "over" or "under" rectangle
         // => may hit on top / bottom
         if (this.x + this.w > rect.x && this.x < rect.x + rect.w)
         {
-            // log("Player on my top/bottom");
-            // Collide top side with bottom, or opp -> bounce y axis
             if (this.y < rect.y + rect.h && this.y > rect.y
                 || this.y + this.h > rect.y && this.y < rect.y)
             {
                 this.velocity.y *= -1;
-                // log("Top/bottom collision");
             }
         }
     }
@@ -138,7 +153,30 @@ pong.init = function()
     // event
     this.keyHandler = function(e) {
         e = e || window.event;
-        log(e.type);
+        if (e.keyIdentifier == "Up") {
+            this.up1 = e.type = "keyup" ? false : true;
+        }
+        else if (e.keyIdentifier == "Down") {
+            this.down1 = e.type = "keyup" ? false : true;
+        }
+        else if (e.keyIdentifier == "U+0057") {
+            this.up2 = e.type = "keyup" ? false : true;
+        }
+        else if (e.keyIdentifier == "U+0053") {
+            this.down2 = e.type = "keyup" ? false : true;
+        }
+//        log(e.type + " : " + e.keyIdentifier);
+        // for (var i = 0 ; i < this.playersArray.length ; i++)
+        // {
+        //     if (this.playersArray[i].controls.up == e.keyIdentifier)
+        //     {
+        //         this.playersArray[i].velocity.y = e.type == "keyup" ? 0 : 2;
+        //     }
+        //     else if (this.playersArray[i].controls.down == e.keyIdentifier)
+        //     {
+        //         this.playersArray[i].velocity.y = e.type == "keyup" ? 0 : -2;
+        //     }
+        // }
     }
     window.addEventListener("keydown", this.keyHandler, false);
     window.addEventListener("keyup", this.keyHandler, false);
@@ -156,8 +194,6 @@ pong.draw = function()
     this.ctx.fillRect(0,0,this.gameBoard.width,this.gameBoard.height);
     this.ctx.fillStyle = this.fgColor;
 
-    // this.p1.draw(this.ctx);
-    // this.p2.draw(this.ctx);
     for (var i = 0; i < this.players; i++) {
         this.playersArray[i].draw(this.ctx);
     }
@@ -166,12 +202,10 @@ pong.draw = function()
 
 pong.update = function()
 {
-    // this.p1.update();
-    // this.p2.update();
     for (var i = 0; i < this.players; i++) {
-        // this.playersArray[i].update();
+        this.playersArray[i].update(this.keyHandler);
+//        log(this.keyHandler);
     }
-    // log(this.palet);
     this.palet.update(this.playersArray, this.gameBoard);
 }
 
