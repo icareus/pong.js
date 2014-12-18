@@ -25,18 +25,6 @@ function rSign() {
     return (Math.random() < 1/2 ? -1 : 1);
 }
 
-function keySet(playerNumber) {
-    if (playerNumber == 1)
-    {
-        this.up = "Up";
-        this.down = "Down";
-    }
-    else if (playerNumber == 2) {
-        this.up = "U+0057";
-        this.down = "U+0053";
-    }
-}
-
 function player(number, drawColor, gameBoard)
 {
     this.lives = 3;
@@ -47,7 +35,19 @@ function player(number, drawColor, gameBoard)
     this.x = number % 2 ? gameBoard.width / 16
                         : 15 * (gameBoard.width / 16) - this.w;
     this.y = gameBoard.height / 2 - this.h / 2;
-    this.controls = new keySet(this.number);
+    if (this.number == 1) {
+        this.up = "U+0057";
+        this.down = "U+0053";
+    }
+    else if (this.number == 2)
+    {
+        this.up = "Up";
+        this.down = "Down";
+    }
+    this.controller = function() {
+        var up = false;
+        var down = false;
+    }
     this.velocity = new vec2(0, 0);
     this.draw = function(ctx)
     {
@@ -56,13 +56,11 @@ function player(number, drawColor, gameBoard)
         ctx.fillRect(this.x, this.y, this.w, this.h);
         ctx.fillStyle = fillStyleOld;
     }
-    this.update = function(keyHandler) {
-        // tidy this so up + down = 0
-        this.velocity.y = keyHandler.up1 ? 4 : 0;
-        this.velocity.y = keyHandler.down1 ? -4 : 0;
+    this.update = function(gameBoard) {
         this.x += this.velocity.x;
         this.y += this.velocity.y;
-        log(keyHandler.up1);
+        this.y = this.y + this.h > gameBoard.height ? gameBoard.height - this.h : this.y;
+        this.y = this.y < 0 ? 0 : this.y;
     }
 }
 
@@ -74,8 +72,8 @@ function ball(drawColor, gameBoard)
         this.h = 8;
         this.x = gameBoard.width / 2 - this.w / 2;
         this.y = gameBoard.height / 2 - this.h / 2;
-        this.velocity = new vec2(/*Math.floor(Math.random() * 3) * rSign()
-                                ,Math.floor(Math.random() * 4 + 1 * rSign())*/13, 0);
+        this.velocity = new vec2(Math.round(Math.random() * 8 * rSign()) || rSign(),
+                                Math.round(Math.random() * 8 * rSign()) || rSign());
         // if (this.velocity.x == 0) {
         //     this.velocity.x = 16;
         // }
@@ -150,40 +148,35 @@ pong.init = function()
     this.ctx = this.gameBoard.getContext('2d');
     this.players = 2;
     this.playersArray = [];
-    // event
-    this.keyHandler = function(e) {
-        e = e || window.event;
-        if (e.keyIdentifier == "Up") {
-            this.up1 = e.type = "keyup" ? false : true;
-        }
-        else if (e.keyIdentifier == "Down") {
-            this.down1 = e.type = "keyup" ? false : true;
-        }
-        else if (e.keyIdentifier == "U+0057") {
-            this.up2 = e.type = "keyup" ? false : true;
-        }
-        else if (e.keyIdentifier == "U+0053") {
-            this.down2 = e.type = "keyup" ? false : true;
-        }
-//        log(e.type + " : " + e.keyIdentifier);
-        // for (var i = 0 ; i < this.playersArray.length ; i++)
-        // {
-        //     if (this.playersArray[i].controls.up == e.keyIdentifier)
-        //     {
-        //         this.playersArray[i].velocity.y = e.type == "keyup" ? 0 : 2;
-        //     }
-        //     else if (this.playersArray[i].controls.down == e.keyIdentifier)
-        //     {
-        //         this.playersArray[i].velocity.y = e.type == "keyup" ? 0 : -2;
-        //     }
-        // }
-    }
-    window.addEventListener("keydown", this.keyHandler, false);
-    window.addEventListener("keyup", this.keyHandler, false);
 
     for (var i = 1; i <= this.players; i++) {
         this.playersArray.push (new player(i, this.fgColor, this.gameBoard));
     }
+    // event
+    window.addEventListener("keydown", function(e) {
+        e = e || window.event;
+        for (i = 0; i < pong.playersArray.length; i++) {
+            if (pong.playersArray[i].up == e.keyIdentifier) {
+                pong.playersArray[i].velocity.y = pong.playersArray[i].velocity.y == 4 ? 0 : -4;
+            }
+            if (pong.playersArray[i].down == e.keyIdentifier) {
+                pong.playersArray[i].velocity.y = pong.playersArray[i].velocity.y == -4 ? 0 : 4;
+            }
+        }
+        log(e.type + " : " + e.keyIdentifier);
+    }, false);
+    window.addEventListener("keyup", function(e) {
+        e = e || window.event;
+        for (i = 0; i < pong.playersArray.length; i++) {
+            if (pong.playersArray[i].up == e.keyIdentifier) {
+                pong.playersArray[i].velocity.y = pong.playersArray[i].velocity.y == -4 ? 0 : 4;
+            }
+            if (pong.playersArray[i].down == e.keyIdentifier) {
+                pong.playersArray[i].velocity.y = pong.playersArray[i].velocity.y == 4 ? 0 : -4;
+            }
+        }
+        log(e.type + " : " + e.keyIdentifier);
+    }, false);
 
     this.palet = new ball(this.fgColor, this.gameBoard);
 }
@@ -203,9 +196,9 @@ pong.draw = function()
 pong.update = function()
 {
     for (var i = 0; i < this.players; i++) {
-        this.playersArray[i].update(this.keyHandler);
-//        log(this.keyHandler);
+        this.playersArray[i].update(this.gameBoard);
     }
+    //log(this);
     this.palet.update(this.playersArray, this.gameBoard);
 }
 
