@@ -6,7 +6,7 @@
 /*   By: abarbaro <abarbaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2014/12/18 00:23:34 by abarbaro          #+#    #+#             */
-/*   Updated: 2014/12/18 08:31:57 by abarbaro         ###   ########.fr       */
+/*   Updated: 2015/01/04 11:55:23 by abarbaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ function ball(drawColor, gameBoard)
         }
         // Ball is strictly "over" or "under" rectangle
         // => may hit on top / bottom
-        if (this.x + this.w > rect.x && this.x < rect.x + rect.w)
+        else if (this.x + this.w > rect.x && this.x < rect.x + rect.w)
         {
             if (this.y < rect.y + rect.h && this.y > rect.y
                 || this.y + this.h > rect.y && this.y < rect.y)
@@ -143,7 +143,7 @@ pong.init = function()
 {
     this.fgColor = "#00ff00";
     this.bgColor = "#000000";
-    this.framerate = 50;
+    this.framerate = 60;
     this.gameBoard = document.getElementById('canvas');
     this.ctx = this.gameBoard.getContext('2d');
     this.players = 2;
