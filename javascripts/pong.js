@@ -6,7 +6,7 @@
 /*   By: abarbaro <abarbaro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2014/12/18 00:23:34 by abarbaro          #+#    #+#             */
-/*   Updated: 2015/01/04 11:55:23 by abarbaro         ###   ########.fr       */
+/*   Updated: 2015/01/04 13:17:02 by abarbaro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,13 +36,13 @@ function player(number, drawColor, gameBoard)
                         : 15 * (gameBoard.width / 16) - this.w;
     this.y = gameBoard.height / 2 - this.h / 2;
     if (this.number == 1) {
-        this.up = "U+0057";
-        this.down = "U+0053";
+        this.up = "U+0053";
+        this.down = "U+0058";
     }
     else if (this.number == 2)
     {
-        this.up = "Up";
-        this.down = "Down";
+        this.up = "U+004A";
+        this.down = "U+004E";
     }
     this.controller = function() {
         var up = false;
@@ -72,14 +72,8 @@ function ball(drawColor, gameBoard)
         this.h = 8;
         this.x = gameBoard.width / 2 - this.w / 2;
         this.y = gameBoard.height / 2 - this.h / 2;
-        this.velocity = new vec2(Math.round(Math.random() * 8 * rSign()) || rSign(),
-                                Math.round(Math.random() * 8 * rSign()) || rSign());
-        // if (this.velocity.x == 0) {
-        //     this.velocity.x = 16;
-        // }
-        // if (this.velocity.y == 0) {
-        //     this.velocity.y = 16;
-        // }
+        this.velocity = new vec2(0, Math.floor(Math.random() * 4 * rSign()));
+        this.velocity.x = Math.sqrt(32 - (this.velocity.y * this.velocity.y));
     }
     this.collide = function(rect)
     {
@@ -141,7 +135,7 @@ var pong = {};
 
 pong.init = function()
 {
-    this.fgColor = "#00ff00";
+    this.fgColor = "#b5e853";
     this.bgColor = "#000000";
     this.framerate = 60;
     this.gameBoard = document.getElementById('canvas');
